@@ -1,15 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { GAME_RESULT, GAME_TURNS } from './constants'
 import { Square } from './components/Square'
 import { WinnerModal } from './components/WinnerModal'
-import { playAutomaticTurn } from './logic/automaticTurn'
 import { checkIfGameIsOver, checkWinner } from './logic/board'
 import { resetGameLocalStorage, saveGameToLocalStorage } from './logic/storage'
 
 import './App.css'
 
-function App() {
+function App () {
   const [board, setBoard] = useState(() => {
     const boardFromStorage = window.localStorage.getItem('board')
     return boardFromStorage ? JSON.parse(boardFromStorage) : Array(9).fill(null)
@@ -34,7 +33,7 @@ function App() {
 
   const updateBoard = (index) => {
     // Ensure if exists a value or the game is finished
-    if (board[index] || gameStatus != GAME_RESULT.ongoing) return
+    if (board[index] || gameStatus !== GAME_RESULT.ongoing) return
 
     // Set the value of the square
     const newBoard = [...board]
@@ -50,12 +49,6 @@ function App() {
     newAvailableSquares.splice(newAvailableSquares.indexOf(index), 1)
     setAvailableSquares(newAvailableSquares)
 
-    // Save into the local storage
-    saveGameToLocalStorage({
-      board: newBoard,
-      currentTurn: newGameTurn
-    })
-
     // Check if exists a winner
     const winner = checkWinner(newBoard)
     if (winner) {
@@ -69,9 +62,17 @@ function App() {
     }
 
     // Play automatic turn
-    console.log(newGameTurn)
-    //if (newGameTurn === GAME_TURNS.O) playAutomaticTurn(newAvailableSquares, updateBoard)
+    // console.log(newGameTurn)
+    // if (newGameTurn === GAME_TURNS.O) playAutomaticTurn(newAvailableSquares, updateBoard)
   }
+
+  useEffect(() => {
+    // Save into the local storage
+    saveGameToLocalStorage({
+      board: board,
+      currentTurn: currentTurn
+    })
+  }, [currentTurn], [board])
 
   return (
     <main className='board'>
@@ -84,8 +85,9 @@ function App() {
               <Square
                 key={index}
                 index={index}
-                updateBoard={updateBoard}>
-                  {square}
+                updateBoard={updateBoard}
+              >
+                {square}
               </Square>
             )
           })
