@@ -1,8 +1,8 @@
-export function Square ({ children, index, isSelected, updateBoard }) {
+export function Square ({ children, index, isSelected, playMove }) {
   const className = `square ${isSelected ? 'is-selected' : ''}`
 
   const handleClick = () => {
-    updateBoard(index)
+    playMove(index)
   }
 
   return (

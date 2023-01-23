@@ -4,6 +4,7 @@ import { GAME_RESULT, GAME_TURNS } from './constants'
 import { Square } from './components/Square'
 import { WinnerModal } from './components/WinnerModal'
 import { checkIfGameIsOver, checkWinner } from './logic/board'
+import { sleep } from './logic/sleepTime'
 import { resetGameLocalStorage, saveGameToLocalStorage } from './logic/storage'
 
 import './App.css'
@@ -14,6 +15,8 @@ function App () {
     return boardFromStorage ? JSON.parse(boardFromStorage) : Array(9).fill(null)
   })
 
+  const [isComputerTurn, setIsComputerTurn] = useState(false)
+
   const [currentTurn, setTurn] = useState(() => {
     const currentTurnFromStorage = window.localStorage.getItem('currentTurn')
     return currentTurnFromStorage ?? GAME_TURNS.X
@@ -23,18 +26,55 @@ function App () {
 
   const [availableSquares, setAvailableSquares] = useState([0, 1, 2, 3, 4, 5, 6, 7, 8])
 
+  useEffect(() => {
+    // Ensure if the game is finished
+    if (gameStatus !== GAME_RESULT.ongoing) return
+
+    if (isComputerTurn) {
+      playComputerMove()
+    }
+  }, [isComputerTurn])
+
   const initValues = () => {
     setBoard(Array(9).fill(null))
+    setIsComputerTurn(false)
     setTurn(GAME_TURNS.X)
     setGameStatus(GAME_RESULT.ongoing)
+    setAvailableSquares([0, 1, 2, 3, 4, 5, 6, 7, 8])
 
     resetGameLocalStorage()
   }
 
-  const updateBoard = (index) => {
+  const playHumanMove = (index) => {
     // Ensure if exists a value or the game is finished
     if (board[index] || gameStatus !== GAME_RESULT.ongoing) return
 
+    // In case if the computer is playing, set the flag to false
+    if (isComputerTurn) return
+
+    // Update the board
+    changeBoard(index)
+
+    // Change the turn to the computer
+    setIsComputerTurn(true)
+  }
+
+  const playComputerMove = async () => {
+    // Ensure if the game is finished
+    if (gameStatus !== GAME_RESULT.ongoing) return
+
+    await sleep(500)
+
+    // Update the board
+    const random = Math.floor(Math.random() * availableSquares.length)
+    changeBoard(availableSquares[random])
+
+    // Change the turn to the computer
+    await sleep(500)
+    setIsComputerTurn(false)
+  }
+
+  const changeBoard = (index) => {
     // Set the value of the square
     const newBoard = [...board]
     newBoard[index] = currentTurn
@@ -50,6 +90,10 @@ function App () {
     setAvailableSquares(newAvailableSquares)
 
     // Check if exists a winner
+    checkIfExistsWinner(newBoard)
+  }
+
+  const checkIfExistsWinner = (newBoard) => {
     const winner = checkWinner(newBoard)
     if (winner) {
       if (winner === GAME_TURNS.X) {
@@ -60,10 +104,6 @@ function App () {
     } else if (checkIfGameIsOver(newBoard)) {
       setGameStatus(GAME_RESULT.tie)
     }
-
-    // Play automatic turn
-    // console.log(newGameTurn)
-    // if (newGameTurn === GAME_TURNS.O) playAutomaticTurn(newAvailableSquares, updateBoard)
   }
 
   useEffect(() => {
@@ -85,7 +125,7 @@ function App () {
               <Square
                 key={index}
                 index={index}
-                updateBoard={updateBoard}
+                playMove={playHumanMove}
               >
                 {square}
               </Square>
