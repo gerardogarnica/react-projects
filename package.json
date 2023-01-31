@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/gerardogarnica/react-projects#readme",
   "devDependencies": {
+    "@playwright/test": "^1.30.0",
     "standard": "^17.0.0"
   },
   "eslintConfig": {
